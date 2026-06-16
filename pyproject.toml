@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aegis-scan"
+version = "0.1.0"
+description = "Aegis — a defensive, model-agnostic AI vulnerability-research harness with PoC-gated findings."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Aegis contributors" }]
+keywords = ["security", "sast", "vulnerability", "pentest", "ai", "llm", "sarif"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Security",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: Apache Software License",
+]
+
+dependencies = [
+  "pydantic>=2.6",
+  "pydantic-settings>=2.2",
+  "pyyaml>=6.0",
+  "typer>=0.12",
+  "rich>=13.7",
+  "jinja2>=3.1",
+  "cryptography>=41.0",
+  "packaging>=23.0",
+]
+
+[project.optional-dependencies]
+# Model providers (LiteLLM covers Claude / OpenRouter / Ollama / local).
+models = ["litellm>=1.40", "anthropic>=0.30"]
+# Docker-backed PoC sandbox.
+sandbox = ["docker>=7.0"]
+# Textual TUI.
+tui = ["textual>=0.60"]
+# FastAPI web UI.
+web = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27"]
+# Developer tooling.
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4", "mypy>=1.10"]
+all = [
+  "litellm>=1.40", "anthropic>=0.30", "docker>=7.0",
+  "textual>=0.60", "fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27",
+]
+
+[project.scripts]
+aegis = "aegis.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/paul97ashish/aegis-security"
+Repository = "https://github.com/paul97ashish/aegis-security"
+
+[tool.hatch.build.targets.wheel]
+packages = ["aegis"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# Intentionally vulnerable eval fixtures are not held to style rules.
+extend-exclude = ["tests/corpora"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = [
+  "E501",   # line length handled by formatter
+  "B008",   # Typer idiom: Option()/Argument() as default values
+  "UP042",  # keep `str, Enum` for Pydantic v2 / JSON-value compatibility
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = false

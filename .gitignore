@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Aegis runtime artifacts
+*.sarif
+aegis-report.*
+.aegis/
+audit-*.jsonl
+*.key
+*.sec
+!tests/**/*.key
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store

@@ -1,0 +1,58 @@
+# Aegis configuration — role→model routing and run profiles (design §5).
+# LiteLLM is the unifying abstraction: "local / Ollama / OpenRouter / Claude"
+# is config, not code.
+
+roles:
+  sweep:  ollama/qwen2.5-coder:7b        # wide, cheap, local — privacy-friendly
+  deep:   anthropic/claude-opus-4-8      # high-reasoning verifier (native SDK path)
+  report: openrouter/anthropic/claude-sonnet-4-6
+
+model_list:
+  - model_name: ollama/qwen2.5-coder:7b
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b
+      api_base: http://localhost:11434
+  - model_name: anthropic/claude-opus-4-8
+    litellm_params:
+      model: anthropic/claude-opus-4-8
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: openrouter/anthropic/claude-sonnet-4-6
+    litellm_params:
+      model: openrouter/anthropic/claude-sonnet-4-6
+      api_key: os.environ/OPENROUTER_API_KEY
+
+routing:
+  fallbacks:
+    - anthropic/claude-opus-4-8: [openrouter/anthropic/claude-sonnet-4-6]
+  allowed_fails: 3
+  cooldown_time: 60
+
+profiles:
+  default:
+    description: balanced sweep + verify
+    confirm_only: false
+    execute_pocs: false
+    max_parallel: 8
+    permitted_classes: [recon, vuln_scan]
+  deep:
+    description: deep verify, fewer parallel agents
+    confirm_only: false
+    execute_pocs: false
+    max_parallel: 4
+    permitted_classes: [recon, vuln_scan]
+  recon:
+    description: recon + vuln_scan, no exploitation
+    execute_pocs: false
+    permitted_classes: [recon, vuln_scan]
+  full:
+    description: exploitation classes (approval-gated)
+    execute_pocs: true
+    permitted_classes: [recon, vuln_scan, exploitation]
+
+sandbox:
+  image: python:3.12-slim
+  network: none            # network-off by default (design §6)
+  cpu_limit: 1.0
+  mem_limit: 512m
+  timeout_seconds: 30
+  read_only: true
